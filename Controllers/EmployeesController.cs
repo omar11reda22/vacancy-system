@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using paysky_task.Dataidentity;
@@ -10,14 +11,16 @@ namespace paysky_task.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+   
     public class EmployeesController : ControllerBase
     {
         private readonly IemployeService _employeService;
-       
-        public EmployeesController(IemployeService employeService)
+        private readonly UserManager<Applicationuser> userManager;
+
+        public EmployeesController(IemployeService employeService, UserManager<Applicationuser> userManager)
         {
             _employeService = employeService;
-           
+            this.userManager = userManager;
         }
 
 
@@ -31,6 +34,7 @@ namespace paysky_task.Controllers
                 {
                 var emp = new Employee() { UserName = DTO.UserName , City = DTO.City , Salary = DTO.Salary};
                 await _employeService.add(emp);
+             //   await userManager.AddToRoleAsync(emp, "employee");
                 return Ok(emp);
                 }
                 else
@@ -79,8 +83,38 @@ namespace paysky_task.Controllers
             }
         }
 
+        // register employee and added a role 
+        [HttpPost("register")]
+        //[Authorize(Roles ="Employee")]
+        public async Task<IActionResult> registeremployee(RegisterDTO RGSDTO)
+        {
+            if (ModelState.IsValid)
+            {
+                Applicationuser user = new Applicationuser();
+                {
+                    user.UserName = RGSDTO.UserName;
+                    user.Email = RGSDTO.Email;
+                    user.PasswordHash = RGSDTO.Password;
 
+                    IdentityResult result = await userManager.CreateAsync(user);
+                    if (result.Succeeded == true)
+                    {
+                        // add role 
+                        await userManager.AddToRoleAsync(user, "Employee");
+                        // await userManager.AddToRoleAsync(user, "Employee");
 
+                        // create taken
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        return BadRequest("something is wrong");
+                    }
+                }
+            }
+
+            return Ok();
+        }
 
 
        

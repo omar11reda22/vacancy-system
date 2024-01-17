@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using paysky_task.DTOs;
 using paysky_task.Models;
@@ -7,6 +8,7 @@ namespace paysky_task.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles ="Employee")]
     public class applyvacancybyapplicantController : ControllerBase
     {
         private readonly customcontext context;
@@ -15,7 +17,7 @@ namespace paysky_task.Controllers
         {
             this.context = context;
         }
-
+        // 
         // searching to vacancy by title or discreption 
         [HttpGet("message")]
         public IActionResult searching(string message)

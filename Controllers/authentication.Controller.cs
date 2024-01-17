@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using paysky_task.Dataidentity;
@@ -12,13 +13,42 @@ namespace paysky_task.Controllers
     {
         private readonly UserManager<Applicationuser> userManager;
         private readonly SignInManager<Applicationuser> signInManager;
-
-        public authenticationController(UserManager<Applicationuser> userManager, SignInManager<Applicationuser> signInManager)
+        private readonly RoleManager<IdentityRole> roleManager;
+        public authenticationController(UserManager<Applicationuser> userManager, SignInManager<Applicationuser> signInManager, RoleManager<IdentityRole> roleManager)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
+            this.roleManager = roleManager;
         }
 
+        // add role 
+        [HttpPost]
+        [Authorize(Roles ="Employee")]
+        public async Task<IActionResult> addrole(NewRoleDTO newRoleDTO)
+        {
+            if(ModelState.IsValid)
+            {
+                IdentityRole modelrole = new()
+                {
+                    Name = newRoleDTO.RoleName
+                };
+               IdentityResult result =  await roleManager.CreateAsync(modelrole);
+                if (result.Succeeded)
+                {
+                    
+                    return Ok(result);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty ,"sorry this name already saved " );
+                }
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+            return Ok();
+        }
 
 
 
@@ -39,6 +69,10 @@ namespace paysky_task.Controllers
                         IdentityResult result =  await userManager.CreateAsync(user);
                     if(result.Succeeded == true)
                     {
+                        // add role 
+                        await userManager.AddToRoleAsync(user,"applicant");
+                       // await userManager.AddToRoleAsync(user, "Employee");
+
                         // create taken
                         return Ok(result);
                     }

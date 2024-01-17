@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using paysky_task.DTOs;
@@ -10,6 +11,7 @@ namespace paysky_task.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles ="Employee")]
     public class VcancyApplicantController : ControllerBase
     {
         private readonly IVacancyService vacancyService;
